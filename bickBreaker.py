@@ -1,4 +1,5 @@
 import pygame
+import time
 import sys
 
 from pygame.sprite import AbstractGroup
@@ -6,6 +7,8 @@ from pygame.sprite import AbstractGroup
 ANCHO = 640
 ALTO = 480
 color_azul = (0 , 0, 64) # Color azul para el fondo
+
+pygame.init()
 
 class Bolita(pygame.sprite.Sprite):
     def __init__(self):
@@ -22,7 +25,7 @@ class Bolita(pygame.sprite.Sprite):
 
     def update(self):
         # Evitar que salga por debajo
-        if self.rect.bottom >= ALTO or self.rect.top <= 0:
+        if self.rect.top <= 0:
             self.speed[1] = -self.speed[1]
         elif self.rect.right >= ANCHO or self.rect.left <= 0:
             self.speed[0] = -self.speed[0]
@@ -85,6 +88,19 @@ class Muro(pygame.sprite.Group):
         #self.add(ladrillo1)
         #self.add(ladrillo2)
 
+# Función llamada tras dejar ir la bolita
+def juego_terminado():
+    fuente = pygame.font.SysFont('Arial', 72)
+    texto = fuente.render('Juego terminado :(', True, (255, 255, 255))
+    texto_rect = texto.get_rect()
+    texto_rect.center = [ANCHO/2, ALTO/2]
+    pantalla.blit(texto, texto_rect)
+    pygame.display.flip()
+    # Pausar por tres segundos
+    time.sleep(3)
+    # Salir
+    sys.exit()
+
 
 # Inicializando pantalla
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
@@ -131,6 +147,10 @@ while True:
         else:
             bolita.speed[1] = -bolita.speed[1]
         muro.remove(ladrillo)
+
+    # Revisar si la bolita sale de la pantalla
+    if bolita.rect.top > ALTO:
+        juego_terminado()
 
     pantalla.fill(color_azul)
 
