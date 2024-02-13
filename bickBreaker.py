@@ -7,6 +7,7 @@ from pygame.sprite import AbstractGroup
 ANCHO = 640
 ALTO = 480
 color_azul = (0 , 0, 64) # Color azul para el fondo
+color_blanco = (255, 255, 255) # Color blanco para los textos
 
 pygame.init()
 
@@ -91,7 +92,7 @@ class Muro(pygame.sprite.Group):
 # Función llamada tras dejar ir la bolita
 def juego_terminado():
     fuente = pygame.font.SysFont('Arial', 72)
-    texto = fuente.render('Juego terminado :(', True, (255, 255, 255))
+    texto = fuente.render('Juego terminado :(', True, color_blanco)
     texto_rect = texto.get_rect()
     texto_rect.center = [ANCHO/2, ALTO/2]
     pantalla.blit(texto, texto_rect)
@@ -100,6 +101,14 @@ def juego_terminado():
     time.sleep(3)
     # Salir
     sys.exit()
+
+# Función llamada tras dejar ir la bolita
+def mostrar_puntuacion():
+    fuente = pygame.font.SysFont('Consolas', 20)
+    texto = fuente.render(str(puntuacion).zfill(5), True, color_blanco)
+    texto_rect = texto.get_rect()
+    texto_rect.topleft = [0, 0]
+    pantalla.blit(texto, texto_rect)
 
 
 # Inicializando pantalla
@@ -117,6 +126,7 @@ pygame.key.set_repeat(20)
 bolita = Bolita()
 jugador = Paleta()
 muro = Muro(50)
+puntuacion = 0
 
 while True:
     # Establecer FPS
@@ -147,12 +157,17 @@ while True:
         else:
             bolita.speed[1] = -bolita.speed[1]
         muro.remove(ladrillo)
+        puntuacion += 10
 
     # Revisar si la bolita sale de la pantalla
     if bolita.rect.top > ALTO:
         juego_terminado()
 
+    # Rellenar la pantalla
     pantalla.fill(color_azul)
+
+    # Mostrar puntuación en pantalla
+    mostrar_puntuacion()
 
     # Dibujar bolita en pantalla
     pantalla.blit(bolita.image, bolita.rect)
