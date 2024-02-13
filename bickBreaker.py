@@ -54,6 +54,38 @@ class Paleta(pygame.sprite.Sprite):
         # Mover en base a posición actual y velocidad
         self.rect.move_ip(self.speed)
 
+class Ladrillo(pygame.sprite.Sprite):
+    def __init__(self, posicion):
+        pygame.sprite.Sprite.__init__(self)
+        # Cargar imagen
+        self.image = pygame.image.load('imagenes/ladrillo.png')
+        # Obtener rectángulo de la imagen
+        self.rect = self.image.get_rect()
+        # Posición inicial, provista externamente
+        self.rect.topleft = posicion
+
+class Muro(pygame.sprite.Group):
+    def __init__(self, cantidadLadrillos):
+        pygame.sprite.Group.__init__(self)
+
+        pos_x = 0
+        pos_y = 20
+        for i in range(cantidadLadrillos):
+            ladrillo = Ladrillo((pos_x, pos_y))
+            self.add(ladrillo)
+
+            pos_x += ladrillo.rect.width
+            if pos_x >= ANCHO:
+                pos_x = 0
+                pos_y += ladrillo.rect.height
+
+        #ladrillo1 = Ladrillo((0, 0))
+        #ladrillo2 = Ladrillo((100, 100))
+
+        #self.add(ladrillo1)
+        #self.add(ladrillo2)
+
+
 # Inicializando pantalla
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
 
@@ -68,6 +100,7 @@ pygame.key.set_repeat(20)
 
 bolita = Bolita()
 jugador = Paleta()
+muro = Muro(50)
 
 while True:
     # Establecer FPS
@@ -84,6 +117,21 @@ while True:
     # Actualizar posición de la bolita
     bolita.update()
 
+    # Colisión entre bolita y jugador
+    if pygame.sprite.collide_rect(bolita, jugador):
+        bolita.speed[1] = -bolita.speed[1]
+
+    # Colisión de la bolita con el muro
+    lista = pygame.sprite.spritecollide(bolita, muro, False)
+    if lista: 
+        ladrillo = lista[0]
+        cx = bolita.rect.centerx
+        if cx < ladrillo.rect.left or cx > ladrillo.rect.right:
+            bolita.speed[0] = -bolita.speed[0]
+        else:
+            bolita.speed[1] = -bolita.speed[1]
+        muro.remove(ladrillo)
+
     pantalla.fill(color_azul)
 
     # Dibujar bolita en pantalla
@@ -92,6 +140,9 @@ while True:
     # Dibujar jugador en pantalla
     pantalla.blit(jugador.image, jugador.rect)
     
+    # Dibujar los ladrillos
+    muro.draw(pantalla)
+
     # Actualizar los elementos en pantalla
     pygame.display.flip()
 
