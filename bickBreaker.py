@@ -102,14 +102,23 @@ def juego_terminado():
     # Salir
     sys.exit()
 
-# Función llamada tras dejar ir la bolita
+# Función para mostrar la puntuación en pantalla
 def mostrar_puntuacion():
     fuente = pygame.font.SysFont('Consolas', 20)
-    texto = fuente.render(str(puntuacion).zfill(5), True, color_blanco)
+    cadena = "Puntuacion: " + str(puntuacion).zfill(5)
+    texto = fuente.render(cadena, True, color_blanco)
     texto_rect = texto.get_rect()
     texto_rect.topleft = [0, 0]
     pantalla.blit(texto, texto_rect)
 
+# Función para mostrar la cantidad de vidas del jugador
+def mostrar_vidas():
+    fuente = pygame.font.SysFont('Consolas', 20)
+    cadena = "Vidas: " + str(vidas).zfill(2)
+    texto = fuente.render(cadena, True, color_blanco)
+    texto_rect = texto.get_rect()
+    texto_rect.topright = [ANCHO, 0]
+    pantalla.blit(texto, texto_rect)
 
 # Inicializando pantalla
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
@@ -127,6 +136,8 @@ bolita = Bolita()
 jugador = Paleta()
 muro = Muro(50)
 puntuacion = 0
+vidas = 3
+esperando_saque = True
 
 while True:
     # Establecer FPS
@@ -139,9 +150,18 @@ while True:
         # Buscar eventos del teclado
         elif evento.type == pygame.KEYDOWN:
             jugador.update(evento)
+            if esperando_saque == True and evento.key == pygame.K_SPACE:
+                esperando_saque = False
+                if bolita.rect.centerx < ANCHO / 2:
+                    bolita.speed = [-3, -3]
+                if bolita.rect.centerx > ANCHO / 2:
+                    bolita.speed = [3, -3]
 
     # Actualizar posición de la bolita
-    bolita.update()
+    if esperando_saque == False:
+        bolita.update()
+    else:
+        bolita.rect.midbottom = jugador.rect.midtop
 
     # Colisión entre bolita y jugador
     if pygame.sprite.collide_rect(bolita, jugador):
@@ -161,13 +181,17 @@ while True:
 
     # Revisar si la bolita sale de la pantalla
     if bolita.rect.top > ALTO:
-        juego_terminado()
+        vidas -= 1
+        esperando_saque = True
 
     # Rellenar la pantalla
     pantalla.fill(color_azul)
 
     # Mostrar puntuación en pantalla
     mostrar_puntuacion()
+
+    # Mostrar vidas en pantalla
+    mostrar_vidas()
 
     # Dibujar bolita en pantalla
     pantalla.blit(bolita.image, bolita.rect)
@@ -181,3 +205,6 @@ while True:
     # Actualizar los elementos en pantalla
     pygame.display.flip()
 
+    # Condición para terminar el juego
+    if vidas <= 0:
+        juego_terminado()
